@@ -6,18 +6,14 @@
 <title>ЗИБ ЗИБ ЗИГУШ</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&display=swap');
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
     --gold: #D4A017;
     --gold-dim: #8a6610;
     --bg: #0a0a0a;
-    --surface: #111111;
-    --surface2: #1a1a1a;
     --text: #f0ead6;
     --muted: #666;
-    --accent: #D4A017;
   }
 
   body {
@@ -28,14 +24,22 @@
     overflow-x: hidden;
   }
 
-  /* grain overlay */
+  /* ANIMATED BG */
+  .bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* grain */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
     pointer-events: none;
-    z-index: 999;
+    z-index: 1000;
     opacity: 0.4;
   }
 
@@ -44,8 +48,9 @@
     position: relative;
     text-align: center;
     padding: 80px 24px 60px;
-    border-bottom: 1px solid #222;
+    border-bottom: 1px solid #1a1a1a;
     overflow: hidden;
+    z-index: 1;
   }
 
   .hero::after {
@@ -53,22 +58,21 @@
     position: absolute;
     bottom: 0; left: 50%;
     transform: translateX(-50%);
-    width: 60%;
-    height: 1px;
+    width: 60%; height: 1px;
     background: linear-gradient(90deg, transparent, var(--gold), transparent);
   }
 
   .crown {
-    font-size: 32px;
+    font-size: 28px;
     letter-spacing: 0.3em;
     color: var(--gold);
     margin-bottom: 12px;
-    animation: pulse 3s ease-in-out infinite;
+    animation: crownFloat 4s ease-in-out infinite;
   }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+  @keyframes crownFloat {
+    0%, 100% { transform: translateY(0); opacity: 1; }
+    50% { transform: translateY(-6px); opacity: 0.6; }
   }
 
   .title {
@@ -77,7 +81,12 @@
     letter-spacing: 0.08em;
     line-height: 0.9;
     color: var(--text);
-    text-shadow: 0 0 80px rgba(212,160,23,0.15);
+    animation: titleGlow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes titleGlow {
+    from { text-shadow: 0 0 40px rgba(212,160,23,0.1); }
+    to   { text-shadow: 0 0 80px rgba(212,160,23,0.35), 0 0 120px rgba(212,160,23,0.1); }
   }
 
   .title span { color: var(--gold); }
@@ -88,6 +97,12 @@
     letter-spacing: 0.25em;
     color: var(--muted);
     text-transform: uppercase;
+    animation: fadeInUp 1s ease 0.3s both;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   /* PLAYER */
@@ -95,13 +110,18 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(10,10,10,0.95);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid #222;
+    background: rgba(10,10,10,0.96);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid #1a1a1a;
     padding: 14px 24px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
+  }
+
+  .player-wrap.playing {
+    border-bottom-color: rgba(212,160,23,0.3);
+    box-shadow: 0 1px 0 rgba(212,160,23,0.15);
   }
 
   .play-btn {
@@ -114,9 +134,37 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 18px;
     flex-shrink: 0;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    position: relative;
   }
-  .play-btn:hover { background: rgba(212,160,23,0.1); }
+  .play-btn:hover { background: rgba(212,160,23,0.12); transform: scale(1.05); }
+  .play-btn.playing { animation: btnPulse 1.5s ease-in-out infinite; }
+  @keyframes btnPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(212,160,23,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(212,160,23,0); }
+  }
+
+  /* TRACK SWITCHER */
+  .track-switcher {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .track-btn {
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid #2a2a2a;
+    background: transparent;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .track-btn:hover { border-color: var(--gold-dim); color: var(--text); }
+  .track-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(212,160,23,0.06); }
 
   .player-info { flex: 1; min-width: 0; }
 
@@ -128,20 +176,50 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: opacity 0.3s;
   }
+
+  /* BARS VISUALIZER */
+  .bars {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 14px;
+    margin-top: 5px;
+  }
+
+  .bar {
+    width: 3px;
+    background: var(--gold);
+    border-radius: 1px;
+    height: 3px;
+    transition: height 0.1s;
+    opacity: 0.6;
+  }
+
+  .bars.active .bar:nth-child(1) { animation: bar1 0.8s ease-in-out infinite; }
+  .bars.active .bar:nth-child(2) { animation: bar2 0.9s ease-in-out infinite 0.1s; }
+  .bars.active .bar:nth-child(3) { animation: bar1 0.7s ease-in-out infinite 0.2s; }
+  .bars.active .bar:nth-child(4) { animation: bar2 1.0s ease-in-out infinite 0.05s; }
+  .bars.active .bar:nth-child(5) { animation: bar1 0.85s ease-in-out infinite 0.15s; }
+  .bars.active .bar:nth-child(6) { animation: bar2 0.75s ease-in-out infinite 0.25s; }
+  .bars.active .bar:nth-child(7) { animation: bar1 0.9s ease-in-out infinite 0.1s; }
+  .bars.active .bar:nth-child(8) { animation: bar2 0.8s ease-in-out infinite 0.2s; }
+
+  @keyframes bar1 { 0%,100%{height:3px} 50%{height:12px} }
+  @keyframes bar2 { 0%,100%{height:8px} 50%{height:3px} }
 
   .progress-bar {
     margin-top: 6px;
     height: 3px;
-    background: #2a2a2a;
+    background: #1a1a1a;
     border-radius: 2px;
     cursor: pointer;
-    position: relative;
   }
 
   .progress-fill {
     height: 100%;
-    background: var(--gold);
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
     border-radius: 2px;
     width: 0%;
     transition: width 0.1s linear;
@@ -163,11 +241,11 @@
     max-width: 720px;
     margin: 0 auto;
     padding: 60px 24px 120px;
+    position: relative;
+    z-index: 1;
   }
 
-  .section {
-    margin-bottom: 56px;
-  }
+  .section { margin-bottom: 56px; }
 
   .section-tag {
     font-size: 10px;
@@ -184,65 +262,82 @@
     content: '';
     flex: 1;
     height: 1px;
-    background: #1e1e1e;
+    background: #1a1a1a;
   }
 
   .line {
     font-size: 15px;
     line-height: 2.1;
     color: var(--text);
-    opacity: 0.85;
-    transition: opacity 0.2s;
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: opacity 0.5s ease, transform 0.5s ease, color 0.3s;
   }
 
-  .line:hover { opacity: 1; }
+  .line.visible { opacity: 0.8; transform: translateX(0); }
+  .line.visible:hover { opacity: 1; transform: translateX(4px); }
+  .line.highlight { color: var(--gold); }
+  .line.highlight.visible { opacity: 1; }
 
-  .line.highlight { color: var(--gold); opacity: 1; }
+  .hook-block .line { font-size: 16px; font-weight: 500; }
 
-  .hook-block .line {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text);
-    opacity: 1;
-  }
-
-  .outro-block .line {
-    opacity: 0.5;
-    font-size: 14px;
-  }
-
+  .outro-block .line { font-size: 14px; }
   .outro-block .line:last-child {
     font-size: 22px;
     font-weight: 500;
     color: var(--gold);
-    opacity: 1;
-    margin-top: 24px;
     letter-spacing: 0.15em;
+    margin-top: 24px;
   }
 
-  /* bottom glow */
+  /* FLOATING PARTICLES */
+  .particle {
+    position: fixed;
+    width: 2px; height: 2px;
+    background: var(--gold);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+    animation: particleDrift linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes particleDrift {
+    0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10%  { opacity: 0.4; }
+    90%  { opacity: 0.4; }
+    100% { transform: translateY(-10vh) translateX(var(--drift)); opacity: 0; }
+  }
+
+  /* BOTTOM GLOW */
   .bottom-glow {
     position: fixed;
     bottom: 0; left: 50%;
     transform: translateX(-50%);
-    width: 300px;
-    height: 200px;
-    background: radial-gradient(ellipse at bottom, rgba(212,160,23,0.06) 0%, transparent 70%);
+    width: 400px; height: 250px;
+    background: radial-gradient(ellipse at bottom, rgba(212,160,23,0.07) 0%, transparent 70%);
     pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.5s;
   }
+
+  .bottom-glow.active { opacity: 1.5; }
 
   /* scrollbar */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
 
   @media (max-width: 600px) {
     .title { font-size: clamp(48px, 18vw, 80px); }
-    .player-wrap { padding: 12px 16px; gap: 12px; }
+    .player-wrap { padding: 10px 14px; gap: 10px; flex-wrap: wrap; }
+    .track-switcher { order: -1; width: 100%; }
   }
 </style>
 </head>
 <body>
+
+<canvas class="bg-canvas" id="bgCanvas"></canvas>
 
 <div class="hero">
   <div class="crown">♛ ♛ ♛</div>
@@ -250,16 +345,30 @@
   <div class="subtitle">царское · царское · 15 гол</div>
 </div>
 
-<div class="player-wrap">
+<div class="player-wrap" id="playerWrap">
   <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+
+  <div class="track-switcher">
+    <button class="track-btn active" id="tb1" onclick="switchTrack(0)">v1</button>
+    <button class="track-btn" id="tb2" onclick="switchTrack(1)">v2</button>
+    <button class="track-btn" id="tb3" onclick="switchTrack(2)">v3</button>
+  </div>
+
   <div class="player-info">
-    <div class="track-name">Зиб Зиб Зигуш — Флаг</div>
+    <div class="track-name" id="trackName">Зиб Зиб Зигуш — Версия 1</div>
+    <div class="bars" id="bars">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div>
+    </div>
     <div class="progress-bar" id="progressBar" onclick="seek(event)">
       <div class="progress-fill" id="progressFill"></div>
     </div>
   </div>
+
   <div class="time" id="timeDisplay">0:00 / 0:00</div>
-  <audio id="audio" src="https://files.catbox.moe/lcv3xs.mp3" crossorigin="anonymous"></audio>
+
+  <audio id="audio" crossorigin="anonymous"></audio>
 </div>
 
 <div class="lyrics-container">
@@ -460,14 +569,30 @@
 
 </div>
 
-<div class="bottom-glow"></div>
+<div class="bottom-glow" id="bottomGlow"></div>
 
 <script>
+  // TRACKS
+  const tracks = [
+    { src: 'https://files.catbox.moe/lcv3xs.mp3', name: 'Зиб Зиб Зигуш — Версия 1' },
+    { src: 'https://files.catbox.moe/rto3cm.mp3', name: 'Зиб Зиб Зигуш — Версия 2' },
+    { src: 'https://files.catbox.moe/a09t9t.mp3', name: 'Зиб Зиб Зигуш — Версия 3' }
+  ];
+  let currentTrack = 0;
+  let isPlaying = false;
+
   const audio = document.getElementById('audio');
   const playBtn = document.getElementById('playBtn');
   const progressFill = document.getElementById('progressFill');
   const timeDisplay = document.getElementById('timeDisplay');
   const progressBar = document.getElementById('progressBar');
+  const trackName = document.getElementById('trackName');
+  const bars = document.getElementById('bars');
+  const playerWrap = document.getElementById('playerWrap');
+  const bottomGlow = document.getElementById('bottomGlow');
+
+  // Load first track
+  audio.src = tracks[0].src;
 
   function fmt(s) {
     const m = Math.floor(s / 60);
@@ -479,10 +604,37 @@
     if (audio.paused) {
       audio.play();
       playBtn.textContent = '⏸';
+      playBtn.classList.add('playing');
+      bars.classList.add('active');
+      playerWrap.classList.add('playing');
+      bottomGlow.classList.add('active');
+      isPlaying = true;
+      spawnParticles();
     } else {
       audio.pause();
       playBtn.textContent = '▶';
+      playBtn.classList.remove('playing');
+      bars.classList.remove('active');
+      playerWrap.classList.remove('playing');
+      isPlaying = false;
     }
+  }
+
+  function switchTrack(idx) {
+    const wasPlaying = !audio.paused;
+    currentTrack = idx;
+    audio.src = tracks[idx].src;
+    trackName.style.opacity = '0';
+    setTimeout(() => {
+      trackName.textContent = tracks[idx].name;
+      trackName.style.opacity = '1';
+    }, 200);
+    document.querySelectorAll('.track-btn').forEach((b, i) => {
+      b.classList.toggle('active', i === idx);
+    });
+    progressFill.style.width = '0%';
+    timeDisplay.textContent = '0:00 / 0:00';
+    if (wasPlaying) audio.play();
   }
 
   audio.addEventListener('timeupdate', () => {
@@ -494,7 +646,11 @@
 
   audio.addEventListener('ended', () => {
     playBtn.textContent = '▶';
+    playBtn.classList.remove('playing');
+    bars.classList.remove('active');
+    playerWrap.classList.remove('playing');
     progressFill.style.width = '0%';
+    isPlaying = false;
   });
 
   function seek(e) {
@@ -503,15 +659,78 @@
     audio.currentTime = ratio * audio.duration;
   }
 
-  // highlight lines on scroll
-  const lines = document.querySelectorAll('.line:not(.highlight)');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) e.target.style.opacity = '1';
-      else e.target.style.opacity = '0.65';
+  // SCROLL REVEAL
+  const allLines = document.querySelectorAll('.line');
+  const lineObserver = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), Math.random() * 80);
+      }
     });
-  }, { threshold: 0.5 });
-  lines.forEach(l => observer.observe(l));
+  }, { threshold: 0.2 });
+  allLines.forEach(l => lineObserver.observe(l));
+
+  // PARTICLES
+  function spawnParticles() {
+    if (!isPlaying) return;
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.setProperty('--drift', (Math.random() - 0.5) * 60 + 'px');
+    const dur = 4 + Math.random() * 6;
+    p.style.animationDuration = dur + 's';
+    p.style.animationDelay = Math.random() * 2 + 's';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), (dur + 2) * 1000);
+    setTimeout(spawnParticles, 400 + Math.random() * 600);
+  }
+
+  // BG CANVAS — animated waveform background
+  const canvas = document.getElementById('bgCanvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, t = 0;
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function drawBg() {
+    ctx.clearRect(0, 0, W, H);
+    t += 0.004;
+
+    // slow moving gradient orbs
+    const orbs = [
+      { x: 0.2, y: 0.3, r: 0.35, dx: Math.sin(t * 0.7) * 0.05, dy: Math.cos(t * 0.5) * 0.04 },
+      { x: 0.8, y: 0.7, r: 0.3, dx: Math.cos(t * 0.6) * 0.06, dy: Math.sin(t * 0.8) * 0.03 },
+      { x: 0.5, y: 0.9, r: 0.25, dx: Math.sin(t * 0.4) * 0.04, dy: 0 },
+    ];
+
+    orbs.forEach(o => {
+      const grd = ctx.createRadialGradient(
+        (o.x + o.dx) * W, (o.y + o.dy) * H, 0,
+        (o.x + o.dx) * W, (o.y + o.dy) * H, o.r * Math.max(W, H)
+      );
+      grd.addColorStop(0, 'rgba(212,160,23,0.04)');
+      grd.addColorStop(1, 'rgba(212,160,23,0)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, W, H);
+    });
+
+    // subtle horizontal scan line
+    const scanY = ((t * 60) % (H + 100)) - 50;
+    const scanGrd = ctx.createLinearGradient(0, scanY - 40, 0, scanY + 40);
+    scanGrd.addColorStop(0, 'rgba(212,160,23,0)');
+    scanGrd.addColorStop(0.5, 'rgba(212,160,23,0.015)');
+    scanGrd.addColorStop(1, 'rgba(212,160,23,0)');
+    ctx.fillStyle = scanGrd;
+    ctx.fillRect(0, scanY - 40, W, 80);
+
+    requestAnimationFrame(drawBg);
+  }
+  drawBg();
 </script>
 </body>
 </html>
